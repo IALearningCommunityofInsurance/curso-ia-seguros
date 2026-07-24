@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IA Aplicada al Seguro · COI / CICA</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --red:     #E4382E;
+  --coral:   #F1957C;
+  --coal:    #595959;
+  --ink:     #111111;
+  --paper:   #F5F3EF;
+  --white:   #FFFFFF;
+  --rule:    #DDD9D3;
+  --serif:   'Georgia', 'Times New Roman', serif;
+  --sans:    -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+body { font-family: var(--sans); background: var(--white); color: var(--ink); line-height: 1.6; }
+
+/* ── NAV ── */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--white);
+  border-bottom: 1px solid var(--rule);
+  padding: 0 2rem;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 52px;
+}
+.nav-brand { display: flex; align-items: center; gap: 10px; }
+.nav-pip { width: 8px; height: 8px; border-radius: 50%; background: var(--red); flex-shrink: 0; }
+.nav-name { font-family: var(--serif); font-size: 13px; color: var(--ink); letter-spacing: 0.01em; }
+.nav-links { display: flex; gap: 28px; }
+.nav-links a { font-size: 12px; color: var(--coal); text-decoration: none; letter-spacing: 0.02em; transition: color .15s; }
+.nav-links a:hover { color: var(--red); }
+
+/* ── HERO ── */
+.hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 88vh;
+  border-bottom: 1px solid var(--rule);
+}
+.hero-left {
+  background: var(--paper);
+  padding: 5rem 3rem 4rem;
+  display: flex; flex-direction: column; justify-content: center;
+  border-right: 1px solid var(--rule);
+}
+.hero-right {
+  background: var(--ink);
+  display: flex; align-items: center; justify-content: center;
+  padding: 3rem 2rem;
+  position: relative; overflow: hidden;
+}
+.hero-kicker {
+  font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--red); margin-bottom: 1.5rem;
+}
+.hero-left h1 {
+  font-family: var(--serif);
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  font-weight: normal; line-height: 1.15;
+  color: var(--ink); margin-bottom: 1.5rem;
+}
+.hero-left h1 span { color: var(--red); }
+.hero-left p {
+  font-size: 0.95rem; color: var(--coal);
+  max-width: 380px; line-height: 1.75; margin-bottom: 2.5rem;
+}
+.hero-stats { display: flex; gap: 2rem; }
+.stat { display: flex; flex-direction: column; }
+.stat-n { font-family: var(--serif); font-size: 2rem; color: var(--ink); line-height: 1; }
+.stat-l { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--coal); margin-top: 3px; }
+
+/* ── GRAFO SVG ── */
+#course-graph { width: 100%; max-width: 480px; }
+.node-circle { transition: r .2s; cursor: default; }
+.node-label { pointer-events: none; }
+.edge { stroke-dasharray: 200; stroke-dashoffset: 200; }
+.edge.drawn { animation: drawLine .6s ease forwards; }
+@keyframes drawLine { to { stroke-dashoffset: 0; } }
+.node-group { opacity: 0; transform: scale(0.6); transform-origin: center; }
+.node-group.appear { animation: popIn .35s cubic-bezier(.34,1.56,.64,1) forwards; }
+@keyframes popIn { to { opacity: 1; transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) {
+  .edge { animation: none; stroke-dashoffset: 0; }
+  .node-group { animation: none; opacity: 1; transform: none; }
+}
+
+/* ── SEPARADOR ── */
+.divider {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 0 2rem; max-width: 960px; margin: 3rem auto 0;
+}
+.divider-rule { flex: 1; height: 1px; background: var(--rule); }
+.divider-label { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--coal); white-space: nowrap; }
+
+/* ── MÓDULOS ── */
+.modulos-wrap { max-width: 960px; margin: 0 auto; padding: 2rem 2rem 4rem; }
+.modulos-table { width: 100%; border-collapse: collapse; }
+.modulos-table thead th {
+  font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--coal); font-weight: normal; padding: 0 1rem 0.75rem;
+  border-bottom: 1px solid var(--rule); text-align: left;
+}
+.modulos-table thead th:first-child { width: 80px; }
+.modulos-table tbody tr { border-bottom: 1px solid var(--rule); transition: background .15s; }
+.modulos-table tbody tr:hover { background: var(--paper); }
+.modulos-table tbody td { padding: 1.1rem 1rem; vertical-align: top; }
+.mod-num { font-size: 11px; color: var(--coral); letter-spacing: 0.06em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mod-title { font-family: var(--serif); font-size: 1rem; font-weight: normal; color: var(--ink); margin-bottom: 3px; }
+.mod-desc { font-size: 12px; color: var(--coal); line-height: 1.5; }
+.mod-tag {
+  display: inline-block; font-size: 9px; padding: 2px 7px;
+  border: 1px solid var(--rule); color: var(--coal);
+  letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap;
+}
+.mod-tag-red { border-color: #f5c4c2; color: var(--red); background: #fef5f5; }
+.mod-dur { font-size: 11px; color: var(--coal); white-space: nowrap; }
+
+/* ── CASOS ── */
+.casos-band { background: var(--ink); padding: 4rem 2rem; }
+.casos-inner { max-width: 960px; margin: 0 auto; }
+.casos-kicker { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--coral); margin-bottom: 0.75rem; }
+.casos-inner h2 { font-family: var(--serif); font-size: 1.6rem; font-weight: normal; color: var(--white); margin-bottom: 2.5rem; }
+.casos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: rgba(255,255,255,0.08); }
+.caso { background: var(--ink); padding: 1.75rem; }
+.caso:hover { background: #1c1c1c; }
+.caso-eyebrow { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 0.6rem; }
+.caso h3 { font-family: var(--serif); font-size: 1rem; font-weight: normal; color: var(--white); margin-bottom: 0.75rem; line-height: 1.3; }
+.caso p { font-size: 12.5px; color: rgba(255,255,255,0.58); line-height: 1.65; }
+.caso-pill {
+  display: inline-block; margin-top: 1rem; font-size: 9px;
+  padding: 3px 10px; letter-spacing: 0.08em; text-transform: uppercase;
+}
+.caso-pill-red { background: rgba(228,56,46,0.15); color: var(--coral); }
+.caso-pill-amber { background: rgba(200,150,70,0.15); color: #C89646; }
+
+/* ── GLOSARIO PREVIEW ── */
+.glosario-band { background: var(--paper); padding: 4rem 2rem; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.glosario-inner { max-width: 960px; margin: 0 auto; }
+.glosario-inner h2 { font-family: var(--serif); font-size: 1.6rem; font-weight: normal; color: var(--ink); margin-bottom: 0.5rem; }
+.glosario-inner .sub { font-size: 13px; color: var(--coal); margin-bottom: 2rem; }
+.glosario-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0; }
+.glosario-entry { padding: 0.9rem 1rem; border-bottom: 1px solid var(--rule); border-right: 1px solid var(--rule); }
+.glosario-entry:hover { background: var(--white); }
+.g-term { font-size: 12.5px; font-weight: 600; color: var(--ink); margin-bottom: 2px; }
+.g-def { font-size: 11.5px; color: var(--coal); line-height: 1.5; }
+.glosario-link { display: inline-block; margin-top: 1.5rem; font-size: 12px; color: var(--red); text-decoration: none; letter-spacing: 0.02em; border-bottom: 1px solid var(--coral); padding-bottom: 1px; }
+.glosario-link:hover { color: var(--ink); border-color: var(--ink); }
+
+/* ── RECURSOS ── */
+.recursos-wrap { max-width: 960px; margin: 0 auto; padding: 4rem 2rem; }
+.recursos-kicker { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--red); margin-bottom: 0.75rem; }
+.recursos-wrap h2 { font-family: var(--serif); font-size: 1.6rem; font-weight: normal; color: var(--ink); margin-bottom: 2rem; }
+.recursos-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.5rem; }
+.recurso { border-top: 2px solid var(--red); padding-top: 0.75rem; }
+.recurso h3 { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+.recurso p { font-size: 12px; color: var(--coal); line-height: 1.55; }
+
+/* ── FOOTER ── */
+footer { background: var(--ink); color: rgba(255,255,255,0.38); font-size: 11.5px; padding: 2.5rem 2rem; text-align: center; line-height: 2; }
+footer strong { color: rgba(255,255,255,0.75); }
+footer a { color: var(--coral); text-decoration: none; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 720px) {
+  .hero { grid-template-columns: 1fr; min-height: auto; }
+  .hero-right { min-height: 300px; }
+  .hero-left { padding: 3rem 1.5rem; border-right: none; border-bottom: 1px solid var(--rule); }
+  nav .nav-links { display: none; }
+  .casos-grid { grid-template-columns: 1fr; }
+  .modulos-table thead tr th:nth-child(4) { display: none; }
+  .modulos-table tbody tr td:nth-child(4) { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">
+    <div class="nav-pip"></div>
+    <span class="nav-name">COI / CICA</span>
+  </div>
+  <div class="nav-links">
+    <a href="#modulos">Módulos</a>
+    <a href="#casos">Casos prácticos</a>
+    <a href="#glosario">Glosario</a>
+    <a href="#recursos">Recursos</a>
+    <a href="00-inicio/sumario-del-curso.md">Sumario completo ↗</a>
+  </div>
+</nav>
+
+<!-- HERO: texto izquierda · grafo derecha -->
+<header class="hero">
+  <div class="hero-left">
+    <div class="hero-kicker">Community of Insurance · CICA · 2026</div>
+    <h1>Inteligencia Artificial<br>aplicada al<br><span>sector asegurador</span></h1>
+    <p>Un recorrido riguroso y práctico por la IA en el seguro: desde los fundamentos conceptuales hasta la hoja de ruta de implantación en una organización real.</p>
+    <div class="hero-stats">
+      <div class="stat"><span class="stat-n">6</span><span class="stat-l">Módulos</span></div>
+      <div class="stat"><span class="stat-n">6h</span><span class="stat-l">Duración</span></div>
+      <div class="stat"><span class="stat-n">60+</span><span class="stat-l">Términos en glosario</span></div>
+    </div>
+  </div>
+  <div class="hero-right">
+    <!-- GRAFO DEL CURSO: 6 nodos conectados en forma de red de conocimiento -->
+    <svg id="course-graph" viewBox="0 0 460 400" xmlns="http://www.w3.org/2000/svg" aria-label="Mapa visual de los seis módulos del curso">
+
+      <!-- Edges (se animan primero) -->
+      <!-- M01 ↔ M02 --> <line class="edge" id="e12" x1="140" y1="130" x2="270" y2="95"  stroke="#E4382E" stroke-width="1" opacity="0.5"/>
+      <!-- M01 ↔ M03 --> <line class="edge" id="e13" x1="140" y1="130" x2="120" y2="230" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+      <!-- M02 ↔ M04 --> <line class="edge" id="e24" x1="270" y1="95"  x2="340" y2="200" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+      <!-- M03 ↔ M04 --> <line class="edge" id="e34" x1="120" y1="230" x2="340" y2="200" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+      <!-- M04 ↔ M05 --> <line class="edge" id="e45" x1="340" y1="200" x2="280" y2="310" stroke="#E4382E" stroke-width="1" opacity="0.5"/>
+      <!-- M03 ↔ M06 --> <line class="edge" id="e36" x1="120" y1="230" x2="185" y2="320" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+      <!-- M05 ↔ M06 --> <line class="edge" id="e56" x1="280" y1="310" x2="185" y2="320" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+      <!-- M01 ↔ M06 --> <line class="edge" id="e16" x1="140" y1="130" x2="185" y2="320" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+      <!-- M02 ↔ M05 --> <line class="edge" id="e25" x1="270" y1="95"  x2="280" y2="310" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+
+      <!-- Nodo M01 — Fundamentos -->
+      <g class="node-group" id="n01" style="transform-origin: 140px 130px;">
+        <circle cx="140" cy="130" r="36" fill="#1a1a1a" stroke="#E4382E" stroke-width="1.5"/>
+        <circle cx="140" cy="130" r="30" fill="none" stroke="rgba(228,56,46,0.25)" stroke-width="1"/>
+        <text x="140" y="124" text-anchor="middle" font-family="Georgia,serif" font-size="18" fill="#E4382E">01</text>
+        <text x="140" y="140" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="8.5" fill="rgba(255,255,255,0.55)" letter-spacing="0.05em">FUNDAMENTOS</text>
+      </g>
+
+      <!-- Nodo M02 — Suscripción -->
+      <g class="node-group" id="n02" style="transform-origin: 270px 95px;">
+        <circle cx="270" cy="95" r="30" fill="#1a1a1a" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+        <text x="270" y="89" text-anchor="middle" font-family="Georgia,serif" font-size="16" fill="rgba(255,255,255,0.8)">02</text>
+        <text x="270" y="104" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="7.5" fill="rgba(255,255,255,0.45)" letter-spacing="0.05em">SUSCRIPCIÓN</text>
+      </g>
+
+      <!-- Nodo M03 — Siniestros -->
+      <g class="node-group" id="n03" style="transform-origin: 120px 230px;">
+        <circle cx="120" cy="230" r="30" fill="#1a1a1a" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+        <text x="120" y="224" text-anchor="middle" font-family="Georgia,serif" font-size="16" fill="rgba(255,255,255,0.8)">03</text>
+        <text x="120" y="239" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="7.5" fill="rgba(255,255,255,0.45)" letter-spacing="0.05em">SINIESTROS</text>
+      </g>
+
+      <!-- Nodo M04 — IA Generativa (destacado) -->
+      <g class="node-group" id="n04" style="transform-origin: 340px 200px;">
+        <circle cx="340" cy="200" r="38" fill="#1a1a1a" stroke="#F1957C" stroke-width="1.5"/>
+        <circle cx="340" cy="200" r="32" fill="none" stroke="rgba(241,149,124,0.2)" stroke-width="1"/>
+        <text x="340" y="194" text-anchor="middle" font-family="Georgia,serif" font-size="18" fill="#F1957C">04</text>
+        <text x="340" y="210" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="7.5" fill="rgba(241,149,124,0.7)" letter-spacing="0.04em">IA GENERATIVA</text>
+      </g>
+
+      <!-- Nodo M05 — Regulación -->
+      <g class="node-group" id="n05" style="transform-origin: 280px 310px;">
+        <circle cx="280" cy="310" r="30" fill="#1a1a1a" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+        <text x="280" y="304" text-anchor="middle" font-family="Georgia,serif" font-size="16" fill="rgba(255,255,255,0.8)">05</text>
+        <text x="280" y="319" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="7.5" fill="rgba(255,255,255,0.45)" letter-spacing="0.05em">REGULACIÓN</text>
+      </g>
+
+      <!-- Nodo M06 — Hoja de ruta -->
+      <g class="node-group" id="n06" style="transform-origin: 185px 320px;">
+        <circle cx="185" cy="320" r="30" fill="#1a1a1a" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+        <text x="185" y="314" text-anchor="middle" font-family="Georgia,serif" font-size="16" fill="rgba(255,255,255,0.8)">06</text>
+        <text x="185" y="329" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="7.5" fill="rgba(255,255,255,0.45)" letter-spacing="0.05em">ROADMAP</text>
+      </g>
+
+      <!-- Etiquetas flotantes alineadas a la derecha del SVG -->
+      <text x="420" y="135" text-anchor="end" font-family="-apple-system,sans-serif" font-size="9" fill="rgba(255,255,255,0.25)">Fundamentos</text>
+      <text x="420" y="98"  text-anchor="end" font-family="-apple-system,sans-serif" font-size="9" fill="rgba(255,255,255,0.25)">Suscripción</text>
+      <text x="420" y="233" text-anchor="end" font-family="-apple-system,sans-serif" font-size="9" fill="rgba(255,255,255,0.25)">Siniestros</text>
+      <text x="420" y="203" text-anchor="end" font-family="-apple-system,sans-serif" font-size="9" fill="rgba(241,149,124,0.5)">IA Generativa ★</text>
+      <text x="420" y="313" text-anchor="end" font-family="-apple-system,sans-serif" font-size="9" fill="rgba(255,255,255,0.25)">Regulación</text>
+      <text x="420" y="323" text-anchor="end" font-family="-apple-system,sans-serif" font-size="9" fill="rgba(255,255,255,0.25)">Roadmap</text>
+    </svg>
+  </div>
+</header>
+
+<!-- MÓDULOS -->
+<div class="divider"><div class="divider-rule"></div><span class="divider-label">Programa del curso</span><div class="divider-rule"></div></div>
+
+<section id="modulos" class="modulos-wrap">
+  <table class="modulos-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Módulo</th>
+        <th>Contenido principal</th>
+        <th>Tipo</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="mod-num">01</span></td>
+        <td><div class="mod-title">Fundamentos de IA para el sector asegurador</div><div class="mod-desc">Qué es la IA, sus tipos y cómo encaja en el ecosistema asegurador. Sin prerrequisitos técnicos.</div></td>
+        <td><div class="mod-desc">IA estrecha vs. generativa · Machine learning · Ecosistema asegurador · Oportunidades y límites</div></td>
+        <td><span class="mod-tag">Conceptual</span></td>
+      </tr>
+      <tr>
+        <td><span class="mod-num">02</span></td>
+        <td><div class="mod-title">IA en suscripción y tarificación</div><div class="mod-desc">Modelos predictivos, pricing dinámico, telemática y el nuevo rol del suscriptor.</div></td>
+        <td><div class="mod-desc">Gradient boosting · Telemática UBI · Pricing personalizado · El suscriptor aumentado</div></td>
+        <td><span class="mod-tag">Técnico</span></td>
+      </tr>
+      <tr>
+        <td><span class="mod-num">03</span></td>
+        <td><div class="mod-title">IA en gestión de siniestros</div><div class="mod-desc">Detección de fraude, liquidación automatizada y visión por computador.</div></td>
+        <td><div class="mod-desc">Análisis de grafos · Computer vision · Triaje automático · Datos satelitales</div></td>
+        <td><span class="mod-tag">Técnico</span></td>
+      </tr>
+      <tr>
+        <td><span class="mod-num">04</span></td>
+        <td><div class="mod-title">IA generativa y atención al cliente</div><div class="mod-desc">LLMs, chatbots, asistentes internos y los riesgos jurídicos de una implantación apresurada.</div></td>
+        <td><div class="mod-desc">LLMs · RAG · Prompt engineering · Responsabilidad legal · 2 casos documentados</div></td>
+        <td><span class="mod-tag mod-tag-red">★ Casos reales</span></td>
+      </tr>
+      <tr>
+        <td><span class="mod-num">05</span></td>
+        <td><div class="mod-title">Regulación, ética y gobierno de IA</div><div class="mod-desc">AI Act europeo, GDPR, sesgos algorítmicos y marcos de gobernanza.</div></td>
+        <td><div class="mod-desc">AI Act · Artículo 22 GDPR · Explicabilidad XAI · EIOPA · Sesgos en pricing</div></td>
+        <td><span class="mod-tag">Regulatorio</span></td>
+      </tr>
+      <tr>
+        <td><span class="mod-num">06</span></td>
+        <td><div class="mod-title">Hoja de ruta e implantación</div><div class="mod-desc">Diagnóstico de madurez, selección del primer caso de uso y gestión del cambio.</div></td>
+        <td><div class="mod-desc">Diagnóstico digital · Build vs. buy vs. partner · MVP en IA · Gestión del cambio</div></td>
+        <td><span class="mod-tag">Estratégico</span></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- CASOS PRÁCTICOS -->
+<section class="casos-band" id="casos">
+  <div class="casos-inner">
+    <div class="casos-kicker">Módulo 04 · Casos prácticos</div>
+    <h2>Dos casos documentados sobre IA conversacional y responsabilidad</h2>
+    <div class="casos-grid">
+      <div class="caso">
+        <div class="caso-eyebrow">Caso A · Real · Verificado judicialmente</div>
+        <h3>El chatbot de Air Canada y la tarifa de duelo</h3>
+        <p>En 2024, el Tribunal de Resolución Civil de Columbia Británica condenó a Air Canada por información incorrecta de su chatbot. Primera sentencia de habla inglesa que establece responsabilidad empresarial directa por errores de IA conversacional. Lección directa para el sector asegurador.</p>
+        <span class="caso-pill caso-pill-red">Sentencia real · 2024 BCCRT 149</span>
+      </div>
+      <div class="caso">
+        <div class="caso-eyebrow">Caso B · Compuesto documentado · España</div>
+        <h3>La cobertura prometida que no existía</h3>
+        <p>Siniestro de hogar donde el asistente virtual confirma cobertura de un daño excluido expresamente en las condiciones particulares. Análisis completo de las consecuencias jurídicas, reputacionales y operativas para una aseguradora española.</p>
+        <span class="caso-pill caso-pill-amber">Caso compuesto · Mercado español</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GLOSARIO (preview) -->
+<section class="glosario-band" id="glosario">
+  <div class="glosario-inner">
+    <div class="casos-kicker" style="color:var(--red)">Recurso de referencia</div>
+    <h2>Glosario de IA para el profesional del seguro</h2>
+    <p class="sub">Más de 60 términos definidos con orientación práctica para el sector, no para el ámbito técnico puro.</p>
+    <div class="glosario-grid">
+      <div class="glosario-entry"><div class="g-term">Alucinación</div><div class="g-def">Cuando el modelo genera información falsa con apariencia de veracidad. Riesgo crítico en chatbots de atención al cliente.</div></div>
+      <div class="glosario-entry"><div class="g-term">LLM</div><div class="g-def">Modelo de lenguaje de gran escala. Base de Claude, GPT-4 y otros asistentes conversacionales.</div></div>
+      <div class="glosario-entry"><div class="g-term">RAG</div><div class="g-def">Retrieval-Augmented Generation. Técnica para anclar las respuestas del modelo en documentos reales (pólizas, coberturas).</div></div>
+      <div class="glosario-entry"><div class="g-term">Sesgo algorítmico</div><div class="g-def">Tendencia de un modelo a producir resultados discriminatorios por herencia de los datos de entrenamiento.</div></div>
+      <div class="glosario-entry"><div class="g-term">XAI</div><div class="g-def">Explainable AI. Capacidad del sistema para justificar sus decisiones. Obligatorio en sistemas de alto riesgo bajo el AI Act.</div></div>
+      <div class="glosario-entry"><div class="g-term">Model drift</div><div class="g-def">Degradación del modelo en producción cuando los datos reales cambian respecto al entrenamiento. Requiere monitorización continua.</div></div>
+    </div>
+    <a class="glosario-link" href="00-inicio/glosario-ia-seguros.md">Ver el glosario completo →</a>
+  </div>
+</section>
+
+<!-- RECURSOS -->
+<section id="recursos">
+  <div class="recursos-wrap">
+    <div class="recursos-kicker">Materiales de apoyo</div>
+    <h2>Recursos para el profesor y los alumnos</h2>
+    <div class="recursos-list">
+      <div class="recurso"><h3>Guía del profesor</h3><p>Orientaciones pedagógicas, tiempos por módulo, claves de debate y soluciones de ejercicios.</p></div>
+      <div class="recurso"><h3>Biblioteca de prompts</h3><p>6 templates profesionales listos para usar con Claude en el entorno asegurador.</p></div>
+      <div class="recurso"><h3>Datasets de ejemplo</h3><p>Datos ficticios de siniestros y primas para los ejercicios prácticos de los módulos.</p></div>
+      <div class="recurso"><h3>Lecturas complementarias</h3><p>Informes EIOPA, referencias del AI Act, benchmarks de Lemonade, AXA y Allianz.</p></div>
+      <div class="recurso"><h3>Rúbrica de evaluación</h3><p>Criterios detallados para valorar los ejercicios y el proyecto final del módulo 06.</p></div>
+      <div class="recurso"><h3>Glosario completo</h3><p>Más de 60 términos de IA definidos con orientación práctica para el profesional del seguro.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <strong>Community of Insurance (COI) · CICA</strong><br>
+  Desarrollado por Carlos Biurrun Murillo · <a href="mailto:carlos@communityofinsurance.es">carlos@communityofinsurance.es</a><br>
+  <a href="https://communityofinsurance.es">communityofinsurance.es</a> · Versión 1.0 · 2026
+</footer>
+
+<script>
+// Animación del grafo: edges primero, luego nodos con retardo escalonado
+const edges = ['e12','e13','e24','e34','e45','e36','e56','e16','e25'];
+const nodes = ['n01','n02','n03','n04','n05','n06'];
+
+function animateGraph() {
+  // Dibujar aristas en secuencia
+  edges.forEach((id, i) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    // Calcular dasharray real basado en la longitud de la línea
+    const len = Math.hypot(
+      parseFloat(el.getAttribute('x2')) - parseFloat(el.getAttribute('x1')),
+      parseFloat(el.getAttribute('y2')) - parseFloat(el.getAttribute('y1'))
+    );
+    el.style.strokeDasharray = len;
+    el.style.strokeDashoffset = len;
+    setTimeout(() => {
+      el.style.transition = 'stroke-dashoffset 0.5s ease';
+      el.style.strokeDashoffset = 0;
+    }, 200 + i * 80);
+  });
+
+  // Aparecer nodos tras las aristas
+  nodes.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('appear');
+    }, 600 + i * 120);
+  });
+}
+
+// Disparar cuando el grafo entra en viewport
+const graph = document.getElementById('course-graph');
+if (graph) {
+  const io = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) { animateGraph(); io.disconnect(); }
+  }, { threshold: 0.3 });
+  io.observe(graph);
+}
+</script>
+
+</body>
+</html>
