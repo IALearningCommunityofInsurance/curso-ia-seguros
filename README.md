@@ -1,0 +1,1 @@
+¿Qué cambia realmente en el seguro? Investigaciones sobre digitalización de corredores, nuevos modelos de gestión, IA neurosimbólica y tendencias del sector — desde quien lo conoce de primera mano y anticipa lo que viene.<img width="442" height="88" alt="image" src="https://github.com/user-attachments/assets/86763958-17c1-4907-a5f4-7092b7d1f418" />
